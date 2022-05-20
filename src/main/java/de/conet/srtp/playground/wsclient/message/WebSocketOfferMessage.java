@@ -1,4 +1,4 @@
-package de.conet.srtc.playground.wsclient.message;
+package de.conet.srtp.playground.wsclient.message;
 
 import lombok.Data;
 

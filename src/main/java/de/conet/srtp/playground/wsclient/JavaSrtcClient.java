@@ -1,4 +1,4 @@
-package de.conet.srtc.playground.wsclient;
+package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.net.URISyntaxException;

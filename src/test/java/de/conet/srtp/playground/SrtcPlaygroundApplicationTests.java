@@ -1,4 +1,4 @@
-package de.conet.srtc.playground;
+package de.conet.srtp.playground;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

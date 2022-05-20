@@ -1,4 +1,4 @@
-package de.conet.srtc.playground;
+package de.conet.srtp.playground;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;

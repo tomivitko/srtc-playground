@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>de.conet</groupId>
-    <artifactId>srtc-playground</artifactId>
+    <artifactId>srtp-playground</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>srtc-playground</name>
     <description>srtc-playground</description>
@@ -25,12 +25,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sourceforge.jsdp</groupId>
-            <artifactId>jsdp</artifactId>
-            <version>1.1</version>
         </dependency>
 
         <dependency>

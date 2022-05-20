@@ -1,4 +1,4 @@
-package de.conet.srtc.playground;
+package de.conet.srtp.playground;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

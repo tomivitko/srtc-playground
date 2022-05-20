@@ -1,16 +1,10 @@
-package de.conet.srtc.playground.wsclient;
+package de.conet.srtp.playground.wsclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.conet.srtc.playground.wsclient.message.WebSocketMessage;
-import de.conet.srtc.playground.wsclient.message.WebSocketOfferMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
 import lombok.extern.slf4j.Slf4j;
-import net.sourceforge.jsdp.Description;
-import net.sourceforge.jsdp.SDPException;
-import net.sourceforge.jsdp.SDPFactory;
-import net.sourceforge.jsdp.SessionDescription;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -55,13 +49,13 @@ public class WebSocketClient {
         try {
             WebSocketMessage socketMessage = objectMapper.readValue(message, WebSocketMessage.class);
             log.info("Received message: {}", socketMessage);
-            if (socketMessage instanceof WebSocketOfferMessage) {
-                // convert to SessionDescription
-                String sdp = ((WebSocketOfferMessage) socketMessage).getData().getSdp();
-                SessionDescription sessionDescription = SDPFactory.createSessionDescription();
-//                log.info("SessionDescription: {}", sdp);
-            }
-        } catch (JsonProcessingException | SDPException e) {
+//            if (socketMessage instanceof WebSocketOfferMessage) {
+//                // convert to SessionDescription
+//                String sdp = ((WebSocketOfferMessage) socketMessage).getData().getSdp();
+//                SessionDescription sessionDescription = SDPFactory.createSessionDescription();
+////                log.info("SessionDescription: {}", sdp);
+//            }
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
