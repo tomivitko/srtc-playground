@@ -1,13 +1,9 @@
 package de.conet.srtp.playground.wsclient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
-import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.URI;
 import java.nio.ByteBuffer;
+import javax.sdp.SdpFactory;
+import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
@@ -16,6 +12,11 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
 
 @Slf4j
 @ClientEndpoint
@@ -49,12 +50,17 @@ public class WebSocketClient {
         try {
             WebSocketMessage socketMessage = objectMapper.readValue(message, WebSocketMessage.class);
             log.info("Received message: {}", socketMessage);
-//            if (socketMessage instanceof WebSocketOfferMessage) {
-//                // convert to SessionDescription
-//                String sdp = ((WebSocketOfferMessage) socketMessage).getData().getSdp();
-//                SessionDescription sessionDescription = SDPFactory.createSessionDescription();
-////                log.info("SessionDescription: {}", sdp);
-//            }
+            if (socketMessage instanceof WebSocketOfferMessage) {
+                // convert to SessionDescription
+                SdpFactory sdpFactory = SdpFactory.getInstance();
+                SessionDescription sdp;
+                try {
+                    sdp = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
+                    log.info("SessionDescription: {}", sdp);
+                } catch (Exception e) {
+                    System.out.println("Error parsing sdp object");
+                }
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

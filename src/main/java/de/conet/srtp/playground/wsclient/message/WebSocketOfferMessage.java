@@ -10,6 +10,17 @@ public class WebSocketOfferMessage implements WebSocketMessage {
     @Data
     public static class OfferMessage{
         private String type;
-        private String sdp; // todo convert to SDP object
+        private String sdp;
+        //        private SessionDescription sdp;
+        //
+        //        OfferMessage(String sdpString) {
+        //            SdpFactory sdpFactory = SdpFactory.getInstance();
+        //            try {
+        //                this.sdp = sdpFactory.createSessionDescription(sdpString);
+        //            } catch (Exception e) {
+        //                System.out.println("Error parsing sdp object");
+        //            }
+        //        }
+        
     }
 }
