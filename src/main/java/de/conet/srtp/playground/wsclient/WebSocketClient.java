@@ -57,6 +57,8 @@ public class WebSocketClient {
                 try {
                     sdp = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
                     log.info("SessionDescription: {}", sdp);
+                    log.info("Key: {}", sdp.getKey());
+
                 } catch (Exception e) {
                     System.out.println("Error parsing sdp object");
                 }
