@@ -2,6 +2,9 @@ package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
@@ -12,17 +15,32 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.conet.srtp.playground.wsclient.message.WebSocketAnswerMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
 import lombok.extern.slf4j.Slf4j;
 import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
 import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
+import org.ice4j.Transport;
+import org.ice4j.TransportAddress;
+import org.ice4j.ice.Agent;
+import org.ice4j.ice.IceMediaStream;
+import org.ice4j.ice.harvest.CandidateHarvester;
+import org.ice4j.ice.harvest.StunCandidateHarvester;
+import org.ice4j.ice.harvest.TurnCandidateHarvester;
+import org.ice4j.ice.harvest.UPNPHarvester;
+import org.ice4j.ice.sdp.IceSdpUtils;
+import org.ice4j.security.LongTermCredential;
+import org.opentelecoms.javax.sdp.NistSdpFactory;
 
 @Slf4j
 @ClientEndpoint
 public class WebSocketClient {
     Session session = null;
     final ObjectMapper objectMapper = new ObjectMapper();
+    Agent agent = new Agent();
 
     public WebSocketClient(URI endpointURI) {
         try {
@@ -49,19 +67,21 @@ public class WebSocketClient {
     public void onMessage(String message) {
         try {
             WebSocketMessage socketMessage = objectMapper.readValue(message, WebSocketMessage.class);
-            log.info("Received message: {}", socketMessage);
             if (socketMessage instanceof WebSocketOfferMessage) {
-                // convert to SessionDescription
-                SdpFactory sdpFactory = SdpFactory.getInstance();
-                SessionDescription sdp;
+                log.info("Received offer message: {} \\n\\n", socketMessage);
                 try {
-                    sdp = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
-                    log.info("SessionDescription: {}", sdp);
-                    log.info("Key: {}", sdp.getKey());
+                    agent = AgentUtils.createAgent(5000, true);
+                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", SdpUtils.createSDPDescription(agent)));
+                    this.sendMessage(objectMapper.writeValueAsString(answer));
 
-                } catch (Exception e) {
-                    System.out.println("Error parsing sdp object");
+                    CompletableFuture.runAsync(() -> agent.startCandidateTrickle(new TrickleCandidateHandler(session)));
+                } catch (final Throwable t) {
+                    log.error(t.getMessage());
                 }
+            } else if (socketMessage instanceof WebSocketCandidateMessage) {
+                log.info("Received candidate message: {} \\n\\n", socketMessage);
+            } else if (socketMessage instanceof WebSocketAnswerMessage) {
+                log.info("Received answer message: {} \\n\\n", socketMessage);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -76,4 +96,5 @@ public class WebSocketClient {
     public void sendMessage(String message) {
         this.session.getAsyncRemote().sendText(message);
     }
+
 }
