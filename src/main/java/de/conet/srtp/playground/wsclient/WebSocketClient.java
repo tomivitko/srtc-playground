@@ -74,7 +74,8 @@ public class WebSocketClient {
                     String sdpDescription = SdpUtils.createSDPDescription(agent);
 //                    sdpDescription =
 //                        sdpDescription + "a=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F";
-                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", sdpDescription));
+
+                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(sdpDescription)));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
 
 //                    CompletableFuture.runAsync(() -> agent.startCandidateTrickle(new TrickleCandidateHandler(session)));
@@ -89,6 +90,12 @@ public class WebSocketClient {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String insertFingerprint(final String sdp) {
+        String[] sdpParts = sdp.split("t=0 0");
+        return sdpParts[0] + "t=0 0\r\na=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F"
+            + sdpParts[1];
     }
 
     @OnMessage
