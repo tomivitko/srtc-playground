@@ -17,6 +17,13 @@
  */
 package de.conet.srtp.playground.wsclient;
 
+import java.util.StringTokenizer;
+import java.util.Vector;
+import javax.sdp.Attribute;
+import javax.sdp.Connection;
+import javax.sdp.MediaDescription;
+import javax.sdp.SdpFactory;
+import javax.sdp.SessionDescription;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
@@ -28,14 +35,6 @@ import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.sdp.CandidateAttribute;
 import org.ice4j.ice.sdp.IceSdpUtils;
 import org.opentelecoms.javax.sdp.NistSdpFactory;
-
-import javax.sdp.Attribute;
-import javax.sdp.Connection;
-import javax.sdp.MediaDescription;
-import javax.sdp.SdpFactory;
-import javax.sdp.SessionDescription;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
 /**
  * Utilities for manipulating SDP. Some of the utilities in this method <b>do
@@ -65,7 +64,7 @@ public class SdpUtils
      */
     public static String createSDPDescription(Agent agent) throws Throwable
     {
-        SdpFactory factory = new NistSdpFactory();
+        SdpFactory factory = new SdpFactory();
         SessionDescription sdess = factory.createSessionDescription();
 
 //        sdess.setAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06");
@@ -100,8 +99,9 @@ public class SdpUtils
 
         Connection globalConn = sdess.getConnection();
         String globalConnAddr = null;
-        if(globalConn != null)
+        if(globalConn != null) {
             globalConnAddr = globalConn.getAddress();
+        }
 
         Vector<MediaDescription> mdescs = sdess.getMediaDescriptions(true);
 
@@ -111,23 +111,26 @@ public class SdpUtils
 
             IceMediaStream stream = localAgent.getStream(streamName);
 
-            if(stream == null)
+            if(stream == null) {
                 continue;
+            }
 
             Vector<Attribute> attributes = desc.getAttributes(true);
             for (Attribute attribute : attributes)
             {
-                if (attribute.getName().equals(CandidateAttribute.NAME))
+                if (attribute.getName().equals(CandidateAttribute.NAME)) {
                     parseCandidate(attribute, stream);
+                }
             }
 
             //set default candidates
             Connection streamConn = desc.getConnection();
             String streamConnAddr = null;
-            if(streamConn != null)
+            if(streamConn != null) {
                 streamConnAddr = streamConn.getAddress();
-            else
+            } else {
                 streamConnAddr = globalConnAddr;
+            }
 
             int port = desc.getMedia().getMediaPort();
 
@@ -137,8 +140,9 @@ public class SdpUtils
             int rtcpPort = port + 1;
             String rtcpAttributeValue = desc.getAttribute("rtcp");
 
-            if (rtcpAttributeValue != null)
+            if (rtcpAttributeValue != null) {
                 rtcpPort = Integer.parseInt(rtcpAttributeValue);
+            }
 
             TransportAddress defaultRtcpAddress =
                 new TransportAddress(streamConnAddr, rtcpPort, Transport.UDP);
@@ -197,8 +201,9 @@ public class SdpUtils
 
         Component component = stream.getComponent(componentID);
 
-        if(component == null)
+        if(component == null) {
             return null;
+        }
 
         // check if there's a related address property
 
