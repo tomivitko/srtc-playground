@@ -2,11 +2,6 @@ package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import javax.sdp.SdpException;
-import javax.sdp.SdpFactory;
-import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
@@ -15,25 +10,14 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-
+import org.ice4j.ice.Agent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import de.conet.srtp.playground.wsclient.message.WebSocketAnswerMessage;
 import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
-import lombok.extern.slf4j.Slf4j;
 import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
 import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
-import org.ice4j.Transport;
-import org.ice4j.TransportAddress;
-import org.ice4j.ice.Agent;
-import org.ice4j.ice.IceMediaStream;
-import org.ice4j.ice.harvest.CandidateHarvester;
-import org.ice4j.ice.harvest.StunCandidateHarvester;
-import org.ice4j.ice.harvest.TurnCandidateHarvester;
-import org.ice4j.ice.harvest.UPNPHarvester;
-import org.ice4j.ice.sdp.IceSdpUtils;
-import org.ice4j.security.LongTermCredential;
-import org.opentelecoms.javax.sdp.NistSdpFactory;
 
 @Slf4j
 @ClientEndpoint
@@ -71,6 +55,7 @@ public class WebSocketClient {
                 log.info("Received offer message: {} \\n\\n", socketMessage);
                 try {
                     agent = AgentUtils.createAgent(20000, true);
+                    log.info("stream count: {}", agent.getStreamCount());
                     String sdpDescription = SdpUtils.createSDPDescription(agent);
 //                    sdpDescription =
 //                        sdpDescription + "a=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F";

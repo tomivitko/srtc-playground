@@ -64,10 +64,10 @@ public class SdpUtils
      */
     public static String createSDPDescription(Agent agent) throws Throwable
     {
-        SdpFactory factory = new SdpFactory();
+        SdpFactory factory = new NistSdpFactory();
         SessionDescription sdess = factory.createSessionDescription();
 
-//        sdess.setAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06");
+        sdess.setAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06");
         IceSdpUtils.initSessionDescription(sdess, agent);
 
 //        sdess.setAttribute(factory.createAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06"));
