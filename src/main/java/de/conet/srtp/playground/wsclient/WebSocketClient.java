@@ -2,6 +2,7 @@ package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
@@ -60,7 +61,9 @@ public class WebSocketClient {
 //                    sdpDescription =
 //                        sdpDescription + "a=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F";
 
-                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(sdpDescription)));
+                    String answerSdp =  insertFingerprint(sdpDescription);
+                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer",answerSdp));
+                    log.info("answer SDP: {}",answerSdp);
                     this.sendMessage(objectMapper.writeValueAsString(answer));
 
 //                    CompletableFuture.runAsync(() -> agent.startCandidateTrickle(new TrickleCandidateHandler(session)));
