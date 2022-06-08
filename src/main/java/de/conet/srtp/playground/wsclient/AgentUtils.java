@@ -34,12 +34,13 @@ public class AgentUtils {
         LongTermCredential longTermCredential
             = new LongTermCredential("homeo", "homeo!!");
 
-        for (String hostname : hostnames)
+        for (String hostname : hostnames) {
             agent.addCandidateHarvester(
                 new TurnCandidateHarvester(
                     new TransportAddress(
                         hostname, port, Transport.UDP),
                     longTermCredential));
+        }
 
         //UPnP: adding an UPnP harvester because they are generally slow
         //which makes it more convenient to test things like trickle.
@@ -47,6 +48,7 @@ public class AgentUtils {
 
         //STREAMS
         createStream(rtpPort, "audio", agent);
+        createStream(rtpPort, "video", agent);
 
         return agent;
     }

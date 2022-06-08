@@ -2,7 +2,6 @@ package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
@@ -56,7 +55,6 @@ public class WebSocketClient {
                 log.info("Received offer message: {} \\n\\n", socketMessage);
                 try {
                     agent = AgentUtils.createAgent(20000, true);
-                    log.info("stream count: {}", agent.getStreamCount());
                     String sdpDescription = SdpUtils.createSDPDescription(agent);
 //                    sdpDescription =
 //                        sdpDescription + "a=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F";

@@ -66,14 +66,44 @@ function initialize() {
     peerConnection = new RTCPeerConnection(configuration);
 
     // Setup ice handling
-    peerConnection.onicecandidate = function(event) {
+/*    peerConnection.onicecandidate = function(event) {
         if (event.candidate) {
             send({
                 event : "candidate",
                 data : event.candidate
             });
         }
-    };
+    };*/
+    
+    
+    
+//no trikle code start
+
+peerConnection.onicecandidate = function(event)  {
+    if (event.candidate === null) {
+        return send_sdp_to_remote_peer();
+    }
+};
+
+peerConnection.oniceconnectionstatuschange = function(event) {
+    if (peer.iceGatheringState === 'complete') {
+        send_sdp_to_remote_peer();
+    }
+};
+
+
+var isSdpSent = false;
+
+function send_sdp_to_remote_peer() {
+    if (isSdpSent) return;
+    isSdpSent = true;
+  
+    var sdp = peerConnection.localDescription;
+    socket.emit('remote-sdp', sdp);
+}
+
+//no trickle code end
+    
 
     // creating data channel
     dataChannel = peerConnection.createDataChannel("dataChannel", {
@@ -102,6 +132,8 @@ function initialize() {
     };
     
 }
+
+
 
 function createOffer() {
     peerConnection.createOffer(function(offer) {
