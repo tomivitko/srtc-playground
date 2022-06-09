@@ -23,6 +23,7 @@ import javax.sdp.Attribute;
 import javax.sdp.Connection;
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpFactory;
+import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
@@ -72,6 +73,18 @@ public class SdpUtils
 
 //        sdess.setAttribute(factory.createAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06"));
         return sdess.toString();
+    }
+
+    public static SessionDescription createSdpFromString(String sdpString) {
+        SdpFactory factory = new NistSdpFactory();
+        SessionDescription sdp;
+        try {
+            sdp = factory.createSessionDescription(sdpString);
+        } catch (SdpParseException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException("Unchecked exception occurs: " + e.toString(), e);
+        }
+        return sdp;
     }
 
     /**

@@ -1,5 +1,8 @@
 package de.conet.srtp.playground.wsclient;
 
+import java.util.Vector;
+import javax.sdp.MediaDescription;
+import javax.sdp.SessionDescription;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
@@ -12,7 +15,7 @@ import org.ice4j.security.LongTermCredential;
 public class AgentUtils {
 
 
-    protected static Agent createAgent(int rtpPort, boolean isTrickling) throws Throwable {
+    protected static Agent createAgent(int rtpPort, boolean isTrickling, SessionDescription sdp) throws Throwable {
         Agent agent = new Agent();
         agent.setTrickling(isTrickling);
 
@@ -47,8 +50,18 @@ public class AgentUtils {
         agent.addCandidateHarvester(new UPNPHarvester());
 
         //STREAMS
-        createStream(rtpPort, "audio", agent);
-        createStream(rtpPort, "video", agent);
+
+        Vector<MediaDescription> mediaDescriptions = sdp.getMediaDescriptions(true);
+        mediaDescriptions.forEach(m -> {
+            try {
+                createStream(rtpPort, ((MediaDescription) m).getMedia().getMediaType(), agent);
+            } catch (Throwable e) {
+                // TODO Auto-generated catch block
+                throw new RuntimeException("Unchecked exception occurs: " + e.toString(), e);
+            }
+        });
+        /*        createStream(rtpPort, "audio", agent);
+        createStream(rtpPort, "video", agent);*/
 
         return agent;
     }
