@@ -99,7 +99,11 @@ function send_sdp_to_remote_peer() {
     isSdpSent = true;
   
     var sdp = peerConnection.localDescription;
-    socket.emit('remote-sdp', sdp);
+    //socket.emit('remote-sdp', sdp);
+                send({
+                event : "offer",
+                data : sdp
+            });
 }
 
 //no trickle code end
