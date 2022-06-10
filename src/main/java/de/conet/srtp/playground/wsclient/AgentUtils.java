@@ -69,7 +69,7 @@ public class AgentUtils {
         agent.createComponent(stream, rtpPort, rtpPort, rtpPort + 100);
 
         //rtcpComp
-//        agent.createComponent(stream, rtpPort + 1, rtpPort + 1, rtpPort + 101);
+        agent.createComponent(stream, rtpPort + 1, rtpPort + 1, rtpPort + 101);
 
         return stream;
     }

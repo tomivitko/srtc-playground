@@ -5,8 +5,10 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
+import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
@@ -79,30 +81,39 @@ public class WebSocketClient {
                     SdpFactory sdpFactory = new NistSdpFactory();
 
                     SessionDescription sessionDescription = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
-//                    String sdpDescription = sessionDescription.toString();
+                    String sdpDescription = sessionDescription.toString();
+                    SdpUtils.parseSDP(agent, sdpDescription);
 
                     Vector mediaDescriptions = sessionDescription.getMediaDescriptions(false);
-//                    System.out.println("Media descriptions: \n" + mediaDescriptions);
+                    //                    System.out.println("Media descriptions: \n" + mediaDescriptions);
 
-                    agent = AgentUtils.createAgent(20000, true, (MediaDescriptionImpl) mediaDescriptions.get(0));
-                    String sdpDescription = SdpUtils.createSDPDescription(agent);
+                    //                    agent = AgentUtils.createAgent(20000, true, (MediaDescriptionImpl) mediaDescriptions.get(0));
+                    agent.setControlling(false);
+                    //                    String sdpDescription = SdpUtils.createSDPDescription(agent);
 
-//                    SdpUtils.parseSDP(agent, sdpDescription);
 
-                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(sdpDescription)));
+                    WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(SdpUtils.createSDPDescription(agent))));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
 
-//                    CompletableFuture.runAsync(() -> agent.startCandidateTrickle(new TrickleCandidateHandler(session)));
                 } catch (final Throwable t) {
                     log.error(t.getMessage());
                 }
             } else if (socketMessage instanceof WebSocketCandidateMessage) {
                 log.info("Received candidate message: {} \\n\\n", socketMessage);
                 if (StringUtils.hasText(((WebSocketCandidateMessage) socketMessage).getData().getCandidate())) {
-                    IceMediaStream stream = agent.getStream("application");
-                    Component component = stream.getComponent(1);
-                    component.addRemoteCandidate(
-                        SdpUtils.parseRemoteCandidate(((WebSocketCandidateMessage) socketMessage).getData(), component));
+                    agent.getStreams().forEach(stream -> {
+                        final String midAttribute;
+                        try {
+                            midAttribute = stream.getMediaDescription().getAttribute("mid");
+                        } catch (SdpParseException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (((WebSocketCandidateMessage) socketMessage).getData().getSdpMid().equals(midAttribute)) {
+                            RemoteCandidate remoteCandidate = SdpUtils.parseRemoteCandidate(((WebSocketCandidateMessage) socketMessage).getData(), stream);
+//                            remoteCandidate.getParentComponent().addRemoteCandidate(remoteCandidate);
+                        }
+//                        component.addRemoteCandidate(remoteCandidate);
+                    });
                 } else {
                     agent.startConnectivityEstablishment();
                 }

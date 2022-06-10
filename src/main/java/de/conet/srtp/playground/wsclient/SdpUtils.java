@@ -70,10 +70,8 @@ public class SdpUtils
         SdpFactory factory = new NistSdpFactory();
         SessionDescription sdess = factory.createSessionDescription();
 
-//        sdess.setAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06");
         IceSdpUtils.initSessionDescription(sdess, agent);
 
-//        sdess.setAttribute(factory.createAttribute("fingerprint", "sha-256 21:60:BC:46:44:54:8D:D2:D8:76:89:6D:2A:6C:40:8F:63:92:57:35:24:75:8F:EF:26:91:B0:A2:26:2B:79:06"));
         return sdess.toString();
     }
 
@@ -228,7 +226,7 @@ public class SdpUtils
     }
 
     public static RemoteCandidate parseRemoteCandidate(WebSocketCandidateMessage.CandidateObject candidateObject,
-                                                       Component component)
+                                                       IceMediaStream stream)
     {
         String candidate = candidateObject.getCandidate();
         String candidateValue = candidate.replace("candidate:", "");
@@ -236,7 +234,9 @@ public class SdpUtils
         StringTokenizer tokenizer = new StringTokenizer(candidateValue);
 
         String foundation = tokenizer.nextToken();
-        int componentID = Integer.parseInt( tokenizer.nextToken() );
+        int componentID = Integer.parseInt( tokenizer.nextToken());
+        final Component component = stream.getComponent(componentID);
+
         Transport transport = Transport.parse(tokenizer.nextToken().toLowerCase());
         long priority = Long.parseLong(tokenizer.nextToken());
         String address = tokenizer.nextToken();
