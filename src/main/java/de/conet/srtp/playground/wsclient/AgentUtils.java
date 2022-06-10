@@ -1,5 +1,6 @@
 package de.conet.srtp.playground.wsclient;
 
+import gov.nist.javax.sdp.MediaDescriptionImpl;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
@@ -12,7 +13,7 @@ import org.ice4j.security.LongTermCredential;
 public class AgentUtils {
 
 
-    protected static Agent createAgent(int rtpPort, boolean isTrickling) throws Throwable {
+    protected static Agent createAgent(int rtpPort, boolean isTrickling, final MediaDescriptionImpl mediaDescription) throws Throwable {
         Agent agent = new Agent();
         agent.setTrickling(isTrickling);
 
@@ -26,32 +27,32 @@ public class AgentUtils {
         //            agent.addCandidateHarvester(stun6Harv);
 
         // TURN
-        String[] hostnames = new String[]
-            {
-                "turn.bistri.com"
-            };
-        int port = 80;
-        LongTermCredential longTermCredential
-            = new LongTermCredential("homeo", "homeo!!");
-
-        for (String hostname : hostnames)
-            agent.addCandidateHarvester(
-                new TurnCandidateHarvester(
-                    new TransportAddress(
-                        hostname, port, Transport.UDP),
-                    longTermCredential));
+//        String[] hostnames = new String[]
+//            {
+//                "turn.bistri.com"
+//            };
+//        int port = 80;
+//        LongTermCredential longTermCredential
+//            = new LongTermCredential("homeo", "homeo!!");
+//
+//        for (String hostname : hostnames)
+//            agent.addCandidateHarvester(
+//                new TurnCandidateHarvester(
+//                    new TransportAddress(
+//                        hostname, port, Transport.UDP),
+//                    longTermCredential));
 
         //UPnP: adding an UPnP harvester because they are generally slow
         //which makes it more convenient to test things like trickle.
         agent.addCandidateHarvester(new UPNPHarvester());
 
         //STREAMS
-        createStream(rtpPort, "audio", agent);
+        createStream(rtpPort, "application", agent, mediaDescription);
 
         return agent;
     }
 
-    private static IceMediaStream createStream(int rtpPort, String streamName, Agent agent)
+    public static IceMediaStream createStream(int rtpPort, String streamName, Agent agent, final MediaDescriptionImpl mediaDescription)
         throws Throwable {
         IceMediaStream stream = agent.createMediaStream(streamName);
 
@@ -60,11 +61,15 @@ public class AgentUtils {
         //created so that we could run the harvesting for everyone of them
         //simultaneously with the others.
 
+        stream.setMediaDescription(mediaDescription);
+        stream.setRemotePassword(mediaDescription.getAttribute("ice-pwd"));
+        stream.setRemoteUfrag(mediaDescription.getAttribute("ice-ufrag"));
+
         //rtp
         agent.createComponent(stream, rtpPort, rtpPort, rtpPort + 100);
 
         //rtcpComp
-        agent.createComponent(stream, rtpPort + 1, rtpPort + 1, rtpPort + 101);
+//        agent.createComponent(stream, rtpPort + 1, rtpPort + 1, rtpPort + 101);
 
         return stream;
     }

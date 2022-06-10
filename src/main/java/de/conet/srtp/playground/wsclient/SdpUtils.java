@@ -17,6 +17,8 @@
  */
 package de.conet.srtp.playground.wsclient;
 
+import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
+import gov.nist.javax.sdp.MediaDescriptionImpl;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
@@ -87,7 +89,7 @@ public class SdpUtils
      */
     @SuppressWarnings("unchecked") // jain-sdp legacy code.
     public static void parseSDP(Agent localAgent, String sdp)
-        throws Exception
+        throws Throwable
     {
         SdpFactory factory = new NistSdpFactory();
         SessionDescription sdess = factory.createSessionDescription(sdp);
@@ -103,13 +105,14 @@ public class SdpUtils
         if(globalConn != null)
             globalConnAddr = globalConn.getAddress();
 
-        Vector<MediaDescription> mdescs = sdess.getMediaDescriptions(true);
+        Vector<MediaDescriptionImpl> mdescs = sdess.getMediaDescriptions(true);
 
-        for (MediaDescription desc : mdescs)
+        for (MediaDescriptionImpl desc : mdescs)
         {
             String streamName = desc.getMedia().getMediaType();
 
-            IceMediaStream stream = localAgent.getStream(streamName);
+            IceMediaStream stream = AgentUtils.createStream(5000, streamName, localAgent, desc);
+//            IceMediaStream stream = localAgent.getStream(streamName);
 
             if(stream == null)
                 continue;
@@ -224,5 +227,44 @@ public class SdpUtils
         return cand;
     }
 
+    public static RemoteCandidate parseRemoteCandidate(WebSocketCandidateMessage.CandidateObject candidateObject,
+                                                       Component component)
+    {
+        String candidate = candidateObject.getCandidate();
+        String candidateValue = candidate.replace("candidate:", "");
 
+        StringTokenizer tokenizer = new StringTokenizer(candidateValue);
+
+        String foundation = tokenizer.nextToken();
+        int componentID = Integer.parseInt( tokenizer.nextToken() );
+        Transport transport = Transport.parse(tokenizer.nextToken().toLowerCase());
+        long priority = Long.parseLong(tokenizer.nextToken());
+        String address = tokenizer.nextToken();
+        int port = Integer.parseInt(tokenizer.nextToken());
+
+        TransportAddress transAddr
+            = new TransportAddress(address, port, transport);
+
+        tokenizer.nextToken(); //skip the "typ" String
+        CandidateType type = CandidateType.parse(tokenizer.nextToken());
+
+        // check if there's a related address property
+
+        RemoteCandidate relatedCandidate = null;
+        if (tokenizer.countTokens() >= 4)
+        {
+            tokenizer.nextToken(); // skip the raddr element
+            String relatedAddr = tokenizer.nextToken();
+            tokenizer.nextToken(); // skip the rport element
+            int relatedPort = Integer.parseInt(tokenizer.nextToken());
+
+            TransportAddress raddr = new TransportAddress(
+                relatedAddr, relatedPort, Transport.UDP);
+
+            relatedCandidate = component.findRemoteCandidate(raddr);
+        }
+
+        return new RemoteCandidate(transAddr, component, type,
+                                   foundation, priority, relatedCandidate, candidateObject.getUsernameFragment());
+    }
 }

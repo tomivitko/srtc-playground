@@ -3,6 +3,7 @@ package de.conet.srtp.playground.wsclient;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
@@ -20,13 +21,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.conet.srtp.playground.wsclient.message.WebSocketAnswerMessage;
 import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
+import gov.nist.javax.sdp.MediaDescriptionImpl;
 import lombok.extern.slf4j.Slf4j;
 import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
 import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
+import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
+import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.CandidateHarvester;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
@@ -34,6 +38,7 @@ import org.ice4j.ice.harvest.UPNPHarvester;
 import org.ice4j.ice.sdp.IceSdpUtils;
 import org.ice4j.security.LongTermCredential;
 import org.opentelecoms.javax.sdp.NistSdpFactory;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @ClientEndpoint
@@ -70,10 +75,19 @@ public class WebSocketClient {
             if (socketMessage instanceof WebSocketOfferMessage) {
                 log.info("Received offer message: {} \\n\\n", socketMessage);
                 try {
-                    agent = AgentUtils.createAgent(20000, true);
+
+                    SdpFactory sdpFactory = new NistSdpFactory();
+
+                    SessionDescription sessionDescription = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
+//                    String sdpDescription = sessionDescription.toString();
+
+                    Vector mediaDescriptions = sessionDescription.getMediaDescriptions(false);
+//                    System.out.println("Media descriptions: \n" + mediaDescriptions);
+
+                    agent = AgentUtils.createAgent(20000, true, (MediaDescriptionImpl) mediaDescriptions.get(0));
                     String sdpDescription = SdpUtils.createSDPDescription(agent);
-//                    sdpDescription =
-//                        sdpDescription + "a=fingerprint:sha-256 F3:04:DD:D5:DC:E6:14:5F:6E:E9:0D:55:74:84:DD:7D:B2:01:1B:BA:5B:67:DA:6E:9D:52:CD:EE:28:8A:73:1F";
+
+//                    SdpUtils.parseSDP(agent, sdpDescription);
 
                     WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(sdpDescription)));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
@@ -84,6 +98,14 @@ public class WebSocketClient {
                 }
             } else if (socketMessage instanceof WebSocketCandidateMessage) {
                 log.info("Received candidate message: {} \\n\\n", socketMessage);
+                if (StringUtils.hasText(((WebSocketCandidateMessage) socketMessage).getData().getCandidate())) {
+                    IceMediaStream stream = agent.getStream("application");
+                    Component component = stream.getComponent(1);
+                    component.addRemoteCandidate(
+                        SdpUtils.parseRemoteCandidate(((WebSocketCandidateMessage) socketMessage).getData(), component));
+                } else {
+                    agent.startConnectivityEstablishment();
+                }
             } else if (socketMessage instanceof WebSocketAnswerMessage) {
                 log.info("Received answer message: {} \\n\\n", socketMessage);
             }

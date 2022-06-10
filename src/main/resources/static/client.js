@@ -49,17 +49,18 @@ function initialize() {
         'iceServers': [
             {
                 'urls': 'stun:stun.l.google.com:19302'
-            },
-            {
-                'urls': 'turn:10.158.29.39:3478?transport=udp',
-                'credential': 'XXXXXXXXXXXXX',
-                'username': 'XXXXXXXXXXXXXXX'
-            },
-            {
-                'urls': 'turn:10.158.29.39:3478?transport=tcp',
-                'credential': 'XXXXXXXXXXXXX',
-                'username': 'XXXXXXXXXXXXXXX'
             }
+            // ,
+            // {
+            //     'urls': 'turn:10.158.29.39:3478?transport=udp',
+            //     'credential': 'XXXXXXXXXXXXX',
+            //     'username': 'XXXXXXXXXXXXXXX'
+            // },
+            // {
+            //     'urls': 'turn:10.158.29.39:3478?transport=tcp',
+            //     'credential': 'XXXXXXXXXXXXX',
+            //     'username': 'XXXXXXXXXXXXXXX'
+            // }
         ]
     };
 
