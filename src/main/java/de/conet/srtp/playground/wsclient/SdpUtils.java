@@ -138,8 +138,15 @@ public class SdpUtils
             int rtcpPort = port + 1;
             String rtcpAttributeValue = desc.getAttribute("rtcp");
 
-            if (rtcpAttributeValue != null)
-                rtcpPort = Integer.parseInt(rtcpAttributeValue);
+            if (rtcpAttributeValue != null){
+                // rtcp check if it has multiple attributes
+                if (rtcpAttributeValue.contains(" ")) {
+                    final StringTokenizer tokenizer = new StringTokenizer(rtcpAttributeValue);
+                    rtcpPort = Integer.parseInt(tokenizer.nextToken());
+                } else {
+                    rtcpPort = Integer.parseInt(rtcpAttributeValue);
+                }
+            }
 
             TransportAddress defaultRtcpAddress =
                 new TransportAddress(streamConnAddr, rtcpPort, Transport.UDP);
@@ -251,20 +258,27 @@ public class SdpUtils
         // check if there's a related address property
 
         RemoteCandidate relatedCandidate = null;
+        String ufrag = candidateObject.getUsernameFragment();
         if (tokenizer.countTokens() >= 4)
         {
-            tokenizer.nextToken(); // skip the raddr element
-            String relatedAddr = tokenizer.nextToken();
-            tokenizer.nextToken(); // skip the rport element
-            int relatedPort = Integer.parseInt(tokenizer.nextToken());
+            String token = tokenizer.nextToken();
+            if (token.equals("raddr")){
+                String relatedAddr = tokenizer.nextToken();
+                tokenizer.nextToken(); // skip the rport element
+                int relatedPort = Integer.parseInt(tokenizer.nextToken());
 
-            TransportAddress raddr = new TransportAddress(
-                relatedAddr, relatedPort, Transport.UDP);
+                TransportAddress raddr = new TransportAddress(
+                    relatedAddr, relatedPort, Transport.UDP);
 
-            relatedCandidate = component.findRemoteCandidate(raddr);
+                relatedCandidate = component.findRemoteCandidate(raddr);
+            } else if (token.equals("generation")) {
+                tokenizer.nextToken(); // skip the generation value element
+                tokenizer.nextToken(); // skip the ufrag element
+                ufrag = tokenizer.nextToken();
+            }
         }
 
         return new RemoteCandidate(transAddr, component, type,
-                                   foundation, priority, relatedCandidate, candidateObject.getUsernameFragment());
+                                   foundation, priority, relatedCandidate, ufrag);
     }
 }

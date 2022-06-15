@@ -77,26 +77,19 @@ public class WebSocketClient {
             if (socketMessage instanceof WebSocketOfferMessage) {
                 log.info("Received offer message: {} \\n\\n", socketMessage);
                 try {
-
                     SdpFactory sdpFactory = new NistSdpFactory();
 
                     SessionDescription sessionDescription = sdpFactory.createSessionDescription(((WebSocketOfferMessage) socketMessage).getData().getSdp());
                     String sdpDescription = sessionDescription.toString();
                     SdpUtils.parseSDP(agent, sdpDescription);
 
-                    Vector mediaDescriptions = sessionDescription.getMediaDescriptions(false);
-                    //                    System.out.println("Media descriptions: \n" + mediaDescriptions);
-
-                    //                    agent = AgentUtils.createAgent(20000, true, (MediaDescriptionImpl) mediaDescriptions.get(0));
                     agent.setControlling(false);
-                    //                    String sdpDescription = SdpUtils.createSDPDescription(agent);
-
 
                     WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(SdpUtils.createSDPDescription(agent))));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
-
+                    agent.startConnectivityEstablishment(); // todo start after all candidates are collected
                 } catch (final Throwable t) {
-                    log.error(t.getMessage());
+                    log.error(t.toString());
                 }
             } else if (socketMessage instanceof WebSocketCandidateMessage) {
                 log.info("Received candidate message: {} \\n\\n", socketMessage);
@@ -109,12 +102,10 @@ public class WebSocketClient {
                             throw new RuntimeException(e);
                         }
                         if (((WebSocketCandidateMessage) socketMessage).getData().getSdpMid().equals(midAttribute)) {
-                            RemoteCandidate remoteCandidate = SdpUtils.parseRemoteCandidate(((WebSocketCandidateMessage) socketMessage).getData(), stream);
-//                            remoteCandidate.getParentComponent().addRemoteCandidate(remoteCandidate);
+                            SdpUtils.parseRemoteCandidate(((WebSocketCandidateMessage) socketMessage).getData(), stream);
                         }
-//                        component.addRemoteCandidate(remoteCandidate);
                     });
-                } else {
+                } else { // todo chrome and edge do not send null candidates when finished
                     agent.startConnectivityEstablishment();
                 }
             } else if (socketMessage instanceof WebSocketAnswerMessage) {
