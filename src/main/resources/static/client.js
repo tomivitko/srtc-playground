@@ -7,7 +7,6 @@ conn.onopen = function() {
 };
 
 conn.onmessage = function(msg) {
-    console.log("Got message", msg.data);
     var content = JSON.parse(msg.data);
     var data = content.data;
     switch (content.event) {
@@ -27,9 +26,8 @@ conn.onmessage = function(msg) {
     }
 };
 
-
 const constraints = {
-    video: true,audio : true
+    video: false,audio : true
 };
 navigator.mediaDevices.getUserMedia(constraints).
 then(function(stream) { peerConnection.addStream(stream); })
@@ -40,27 +38,15 @@ function send(message) {
 }
 
 var peerConnection;
-var dataChannel;
-const videoElement = document.querySelector('video');
-var input = document.getElementById("messageInput");
 
 function initialize() {
     var configuration = {
         'iceServers': [
             {
                 'urls': 'stun:stun.l.google.com:19302'
-            },
-            {
-                'urls': 'turn:10.158.29.39:3478?transport=udp',
-                'credential': 'XXXXXXXXXXXXX',
-                'username': 'XXXXXXXXXXXXXXX'
-            },
-            {
-                'urls': 'turn:10.158.29.39:3478?transport=tcp',
-                'credential': 'XXXXXXXXXXXXX',
-                'username': 'XXXXXXXXXXXXXXX'
             }
-        ]
+        ],
+        "rtcpMuxPolicy": "negotiate"
     };
 
     peerConnection = new RTCPeerConnection(configuration);
@@ -75,38 +61,40 @@ function initialize() {
         }
     };
 
-    // creating data channel
-    dataChannel = peerConnection.createDataChannel("dataChannel", {
-        reliable : true
-    });
+    peerConnection.onconnectionstatechange = ev => {
+        console.log(ev)
+        console.log("PeerConnection state: " + peerConnection.connectionState);
+    }
 
-    dataChannel.onerror = function(error) {
-        console.log("Error occured on datachannel:", error);
+    peerConnection.onsignalingstatechange = ev => {
+        console.log("Signaling state: " + peerConnection.signalingState)
     };
 
-    // when we receive a message from the other peer, printing it on the console
-    dataChannel.onmessage = function(event) {
-        console.log("message:", event.data);
+    peerConnection.oniceconnectionstatechange = ev => {
+        console.log("ICE connection state: " + peerConnection.iceConnectionState);
     };
 
-    dataChannel.onclose = function() {
-        console.log("data channel is closed");
-    };
-  
-  	peerConnection.ondatachannel = function (event) {
-        dataChannel = event.channel;
-  	};
+    peerConnection.onicegatheringstatechange = ev => {
+        let connection = ev.target;
 
-    peerConnection.onaddstream = function(event) {
-        videoElement.srcObject = event.stream;
-    };
-    
+        switch(connection.iceGatheringState) {
+            case "gathering":
+                console.log("ICE gathering in progress")
+                /* collection of candidates has begun */
+                break;
+            case "complete":
+                console.log("ICE gathering completed")
+                /* collection of candidates is finished */
+                break;
+        }
+    }
 }
 
 function createOffer() {
     peerConnection.createOffer(function(offer) {
         send({
             event : "offer",
+            edge: navigator.userAgent.indexOf("Edg") !== -1,
             data : offer
         });
         peerConnection.setLocalDescription(offer);
@@ -136,11 +124,7 @@ function handleCandidate(candidate) {
 };
 
 function handleAnswer(answer) {
+    console.log("Received an answer from remote server");
+    console.log(answer);
     peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-    console.log("connection established successfully!!");
 };
-
-function sendMessage() {
-    dataChannel.send(input.value);
-    input.value = "";
-}
