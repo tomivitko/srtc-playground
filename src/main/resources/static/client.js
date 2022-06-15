@@ -94,7 +94,6 @@ function createOffer() {
     peerConnection.createOffer(function(offer) {
         send({
             event : "offer",
-            edge: navigator.userAgent.indexOf("Edg") !== -1,
             data : offer
         });
         peerConnection.setLocalDescription(offer);
