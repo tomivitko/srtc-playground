@@ -78,8 +78,6 @@ public class WebSocketClient {
 
                     WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(SdpUtils.createSDPDescription(agent))));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
-                    DtlsUtils dtlsUtils = new DtlsUtils();
-                    dtlsUtils.connect(null);
 
                 } catch (final Throwable t) {
                     log.error(t.getMessage());
@@ -109,6 +107,8 @@ public class WebSocketClient {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+        DtlsUtils dtlsUtils = new DtlsUtils();
+        dtlsUtils.connect(null);
     }
 
     private String insertFingerprint(final String sdp) {
