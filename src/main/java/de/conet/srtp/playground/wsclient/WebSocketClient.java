@@ -2,11 +2,7 @@ package de.conet.srtp.playground.wsclient;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
 import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
@@ -18,29 +14,17 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.conet.srtp.playground.wsclient.message.WebSocketAnswerMessage;
-import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
-import gov.nist.javax.sdp.MediaDescriptionImpl;
-import lombok.extern.slf4j.Slf4j;
-import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
-import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
-import org.ice4j.Transport;
-import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
-import org.ice4j.ice.Component;
-import org.ice4j.ice.IceMediaStream;
 import org.ice4j.ice.RemoteCandidate;
-import org.ice4j.ice.harvest.CandidateHarvester;
-import org.ice4j.ice.harvest.StunCandidateHarvester;
-import org.ice4j.ice.harvest.TurnCandidateHarvester;
-import org.ice4j.ice.harvest.UPNPHarvester;
-import org.ice4j.ice.sdp.IceSdpUtils;
-import org.ice4j.security.LongTermCredential;
 import org.opentelecoms.javax.sdp.NistSdpFactory;
 import org.springframework.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import de.conet.srtp.playground.wsclient.message.WebSocketAnswerMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketCandidateMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketMessage;
+import de.conet.srtp.playground.wsclient.message.WebSocketOfferMessage;
 
 @Slf4j
 @ClientEndpoint
@@ -94,6 +78,8 @@ public class WebSocketClient {
 
                     WebSocketAnswerMessage answer = new WebSocketAnswerMessage(new WebSocketAnswerMessage.AnswerMessage("answer", insertFingerprint(SdpUtils.createSDPDescription(agent))));
                     this.sendMessage(objectMapper.writeValueAsString(answer));
+                    DtlsUtils dtlsUtils = new DtlsUtils();
+                    dtlsUtils.connect(null);
 
                 } catch (final Throwable t) {
                     log.error(t.getMessage());
