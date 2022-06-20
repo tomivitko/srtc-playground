@@ -1,9 +1,13 @@
 package de.conet.srtp.playground.wsclient;
 
 import org.bouncycastle.tls.DTLSProtocol;
+import org.jitsi.impl.neomedia.NeomediaServiceUtils;
 import org.jitsi.impl.neomedia.transform.dtls.DtlsControlImpl;
 import org.jitsi.impl.neomedia.transform.dtls.DtlsPacketTransformer;
 import org.jitsi.impl.neomedia.transform.dtls.DtlsTransformEngine;
+import org.jitsi.service.libjitsi.LibJitsi;
+import org.jitsi.service.neomedia.SrtpControl;
+import org.jitsi.service.neomedia.SrtpControlType;
 import net.sf.fmj.media.Log;
 
 public class DtlsUtils {
@@ -19,8 +23,11 @@ public class DtlsUtils {
             // TODO Auto-generated catch block
             throw new RuntimeException("Unchecked exception occurs: " + e.toString(), e);
         }*/
-        DtlsControlImpl dtlsControlImpl = new DtlsControlImpl();
-        DtlsTransformEngine transformEngine = new DtlsTransformEngine(dtlsControlImpl);
+
+        LibJitsi.start();
+        SrtpControl srtpControl = NeomediaServiceUtils.getMediaServiceImpl().createSrtpControl(SrtpControlType.DTLS_SRTP);
+        //DtlsControlImpl dtlsControlImpl = new DtlsControlImpl();
+        DtlsTransformEngine transformEngine = new DtlsTransformEngine((DtlsControlImpl) srtpControl);
         DtlsPacketTransformer dtlsPacketTransformer = new DtlsPacketTransformer(transformEngine, 0);
         byte[] buff = {1};
         Log.info("\n\n\n sending dtls packet\n\n\n\n");
